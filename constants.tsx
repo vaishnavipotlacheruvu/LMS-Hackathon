@@ -24,21 +24,32 @@ export const CollectionIcon = (props: React.SVGProps<SVGSVGElement>) => <svg {..
 
 
 // Mock Data
-export const HTML_SUB_TOPICS = [
-    { id: 'html-1', title: 'HTML Structure' },
-    { id: 'html-2', title: 'Headings & Paragraphs' },
-    { id: 'html-3', title: 'Links' },
-    { id: 'html-4', title: 'Images' },
-    { id: 'html-5', title: 'Lists' },
-    { id: 'html-6', title: 'Tables' },
-    { id: 'html-7', title: 'Forms' },
-    { id: 'html-8', title: 'Semantic Tags' },
-    { id: 'html-9', title: 'Multimedia' },
-    { id: 'html-10', title: 'Meta Tags' },
-];
-
 export const COURSES: Course[] = [
-    { id: 'gc-1', title: 'HTML', description: 'The backbone of the web. Learn to structure content.', year: 1, duration: '4 Weeks', subTopics: HTML_SUB_TOPICS },
+    {
+        id: 'gc-1',
+        title: 'HTML',
+        description: 'The backbone of the web. Learn to structure content.',
+        year: 1,
+        duration: '4 Weeks',
+        subTopics: [
+            {
+                id: 'html-1',
+                title: 'HTML Structure',
+                videoUrl: 'https://www.youtube.com/embed/y3UH2gAbh3c',
+                notes: '### Document Structure\n\n- `<!DOCTYPE html>`: Defines the document type.\n- `<html>`: The root element.\n- `<head>`: Contains meta-information.\n- `<body>`: Contains the visible page content.',
+                practiceTest: {
+                    id: 'html-test-1',
+                    questions: [
+                        { id: 'q1', text: 'What does HTML stand for?', options: ['Hyper Text Markup Language', 'Home Tool Markup Language', 'Hyperlinks and Text Markup Language'], correctAnswerIndex: 0 },
+                        { id: 'q2', text: 'Which tag is the root element of an HTML page?', options: ['<body>', '<html>', '<head>'], correctAnswerIndex: 1 },
+                    ]
+                }
+            },
+            { id: 'html-2', title: 'Headings & Paragraphs', videoUrl: '', notes: '' },
+            { id: 'html-3', title: 'Links', videoUrl: '', notes: '' },
+            { id: 'html-4', title: 'Images', videoUrl: '', notes: '' },
+        ]
+    },
     { id: 'gc-2', title: 'CSS', description: 'Style your web content to make it look great.', year: 1, duration: '4 Weeks' },
     { id: 'gc-3', title: 'Bootstrap', description: 'Build responsive, mobile-first projects on the web.', year: 1, duration: '3 Weeks' },
     { id: 'gc-4', title: 'JavaScript', description: 'Add interactivity and logic to your websites.', year: 2, duration: '8 Weeks' },

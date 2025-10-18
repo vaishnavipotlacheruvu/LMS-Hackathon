@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Student, Course, Assignment, Submission } from '../types';
-import { MOCK_STUDENTS, COURSES, ASSIGNMENTS, MOCK_SUBMISSIONS, FireIcon } from '../constants';
+import { Student, Course, Assignment, Submission, CourseSubTopic, PracticeTest } from '../types';
+import { MOCK_STUDENTS, COURSES, ASSIGNMENTS, MOCK_SUBMISSIONS, FireIcon, PlusCircleIcon } from '../constants';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } from 'recharts';
 
 interface StaffViewProps {
@@ -18,6 +18,154 @@ const StatCard = ({ title, value, icon }) => (
         </div>
     </div>
 );
+
+const CourseDetailManagementView: React.FC<{
+    course: Course;
+    students: Student[];
+    onBack: () => void;
+    onUpdateCourse: (updatedCourse: Course) => void;
+}> = ({ course, students, onBack, onUpdateCourse }) => {
+    const [activeTab, setActiveTab] = useState<'content' | 'students'>('content');
+    const [newTopicTitle, setNewTopicTitle] = useState('');
+
+    const handleTopicChange = (topicId: string, field: keyof Omit<CourseSubTopic, 'id' | 'practiceTest'>, value: string) => {
+        const updatedSubTopics = course.subTopics?.map(topic =>
+            topic.id === topicId ? { ...topic, [field]: value } : topic
+        );
+        onUpdateCourse({ ...course, subTopics: updatedSubTopics });
+    };
+
+    const handleAddTopic = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTopicTitle.trim()) return;
+
+        const newTopic: CourseSubTopic = {
+            id: `topic-${Date.now()}`,
+            title: newTopicTitle,
+            videoUrl: '',
+            notes: '',
+        };
+
+        const updatedSubTopics = [...(course.subTopics || []), newTopic];
+        onUpdateCourse({ ...course, subTopics: updatedSubTopics });
+        setNewTopicTitle('');
+    };
+    
+    const renderPracticeTestInfo = (test?: PracticeTest) => {
+        if (!test) {
+            return <button className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full hover:bg-purple-200">Create Test</button>;
+        }
+        return (
+            <div className="flex items-center gap-4">
+                <p className="text-sm text-gray-600">{test.questions.length} question(s)</p>
+                <button className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full hover:bg-purple-200">Edit Test</button>
+            </div>
+        );
+    };
+
+    const enrolledStudents = useMemo(() => students.filter(s => s.courses.some(sc => sc.courseId === course.id)), [students, course.id]);
+
+    const renderContent = () => (
+        <div>
+            <div className="space-y-4">
+                {course.subTopics?.map(topic => (
+                    <div key={topic.id} className="bg-white p-6 rounded-xl shadow-md">
+                        <input
+                            type="text"
+                            value={topic.title}
+                            onChange={(e) => handleTopicChange(topic.id, 'title', e.target.value)}
+                            className="text-xl font-semibold w-full border-b-2 border-transparent focus:border-brand-primary outline-none mb-4"
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., https://youtube.com/embed/..."
+                                    value={topic.videoUrl || ''}
+                                    onChange={(e) => handleTopicChange(topic.id, 'videoUrl', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                />
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Practice Test</label>
+                                {renderPracticeTestInfo(topic.practiceTest)}
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                             <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Markdown supported)</label>
+                             <textarea
+                                rows={5}
+                                placeholder="Add concepts, explanations, code snippets..."
+                                value={topic.notes || ''}
+                                onChange={(e) => handleTopicChange(topic.id, 'notes', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                             />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-8 bg-white p-6 rounded-xl shadow-md">
+                <h3 className="text-xl font-semibold mb-4">Add New Topic</h3>
+                <form onSubmit={handleAddTopic} className="flex items-center gap-4">
+                    <input
+                        type="text"
+                        value={newTopicTitle}
+                        onChange={(e) => setNewTopicTitle(e.target.value)}
+                        placeholder="Enter title for the new topic"
+                        className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    />
+                    <button type="submit" className="flex items-center bg-brand-secondary text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition">
+                        <PlusCircleIcon className="w-5 h-5 mr-2"/>
+                        Add Topic
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+
+    const renderEnrolledStudents = () => (
+        <div className="bg-white p-6 rounded-xl shadow-md">
+            <h3 className="text-xl font-semibold mb-4">{enrolledStudents.length} student(s) enrolled.</h3>
+            {enrolledStudents.length > 0 ? (
+                 <ul className="divide-y divide-gray-200">
+                    {enrolledStudents.map(s => <li key={s.id} className="py-3 font-medium">{s.name} ({s.registerNumber})</li>)}
+                </ul>
+            ) : <p className="text-gray-500">No students are currently enrolled in this course.</p>}
+        </div>
+    );
+
+    const TabButton = ({ tab, label }) => (
+        <button
+          onClick={() => setActiveTab(tab)}
+          className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${
+            activeTab === tab ? 'bg-brand-primary text-white' : 'text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          {label}
+        </button>
+    );
+
+    return (
+        <div>
+            <button onClick={onBack} className="mb-6 bg-brand-primary text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition">&larr; Back to Courses</button>
+            <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+                 <h2 className="text-3xl font-bold">{course.title}</h2>
+                 <p className="text-gray-600 mt-2">{course.description}</p>
+            </div>
+
+            <div className="mb-6 flex items-center gap-2 border-b pb-2">
+                <TabButton tab="content" label="Course Content" />
+                <TabButton tab="students" label="Enrolled Students" />
+            </div>
+
+            {activeTab === 'content' && renderContent()}
+            {activeTab === 'students' && renderEnrolledStudents()}
+        </div>
+    );
+};
+
 
 const StaffDashboard: React.FC<{ students: Student[], submissions: Submission[] }> = ({ students, submissions }) => {
     const { totalStudents, averageProgress, pendingAssignments, progressDistribution } = useMemo(() => {
@@ -232,6 +380,11 @@ const StaffView: React.FC<StaffViewProps> = ({ activeView }) => {
       setSubmissions(prev => prev.map(sub => sub.id === submissionId ? { ...sub, grade } : sub));
   };
 
+  const handleUpdateCourse = (updatedCourse: Course) => {
+    setCourses(prevCourses => prevCourses.map(c => c.id === updatedCourse.id ? updatedCourse : c));
+    setSelectedCourse(updatedCourse);
+  };
+
   const handleGiftCoins = (studentId: number) => {
     const amount = parseInt(giftAmount, 10);
     if (isNaN(amount) || amount <= 0) {
@@ -250,18 +403,13 @@ const StaffView: React.FC<StaffViewProps> = ({ activeView }) => {
   
   const renderActiveView = () => {
     if (selectedCourse) {
-        const enrolledStudents = students.filter(s => s.courses.some(sc => sc.courseId === selectedCourse.id));
         return (
-            <div>
-                <button onClick={() => setSelectedCourse(null)} className="mb-6 bg-brand-primary text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition">&larr; Back to Courses</button>
-                <h2 className="text-3xl font-bold mb-2">{selectedCourse.title}</h2>
-                <p className="text-gray-600 mb-6">{enrolledStudents.length} student(s) enrolled.</p>
-                <div className="bg-white p-6 rounded-xl shadow-md">
-                    <ul className="divide-y divide-gray-200">
-                        {enrolledStudents.map(s => <li key={s.id} className="py-3 font-medium">{s.name} ({s.registerNumber})</li>)}
-                    </ul>
-                </div>
-            </div>
+            <CourseDetailManagementView
+                course={selectedCourse}
+                students={students}
+                onBack={() => setSelectedCourse(null)}
+                onUpdateCourse={handleUpdateCourse}
+            />
         );
     }
     

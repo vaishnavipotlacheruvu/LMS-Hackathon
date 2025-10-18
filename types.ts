@@ -3,9 +3,24 @@ export enum Role {
   STAFF = 'Staff',
 }
 
+export interface Question {
+  id: string;
+  text: string;
+  options: string[];
+  correctAnswerIndex: number;
+}
+
+export interface PracticeTest {
+  id: string;
+  questions: Question[];
+}
+
 export interface CourseSubTopic {
   id: string;
   title: string;
+  videoUrl?: string;
+  notes?: string;
+  practiceTest?: PracticeTest;
 }
 
 export interface Course {
