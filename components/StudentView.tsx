@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, Course, Assignment, BonusCourse, Submission, StudentCourse } from '../types';
 import { MOCK_STUDENTS, COURSES, ASSIGNMENTS, BONUS_COURSES, FireIcon, MOCK_SUBMISSIONS } from '../constants';
-import { GoogleGenAI } from "@google/genai";
 
 // For this view, we'll hardcode to the first student in the mock data.
 const LOGGED_IN_STUDENT_ID = 101;
